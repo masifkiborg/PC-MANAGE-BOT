@@ -165,16 +165,6 @@ Adding new functionality:
     Update the menu in start_command()
 
 
-📞 Support
-
-When problems arise:
-
-    Check the logs in bot_log.txt
-
-    Make sure that the bot token is correct
-
-    Check access rights to system resources
-
  If you liked the project, don't forget to give it a star!
 
 Designed with ❤️ for convenient system monitoring
