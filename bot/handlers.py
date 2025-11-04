@@ -3,13 +3,15 @@ from telegram.ext import ContextTypes
 from services.system_info import SystemInfoServices
 from services.network_info import NetworkInfoService
 from services.screenshot import Screenshot
+from services.power_manager import PowerManager
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [[InlineKeyboardButton("Системная информация",callback_data='system_info')],
                 [InlineKeyboardButton("Сетевая информация",callback_data='network_info')],
                 [InlineKeyboardButton("Процессы",callback_data='processes')],
                 [InlineKeyboardButton("Статус",callback_data='status')],
-                [InlineKeyboardButton("Скриншот экрана",callback_data='screenshot')]]
+                [InlineKeyboardButton("Скриншот экрана",callback_data='screenshot')],
+                [InlineKeyboardButton("Power Manager",callback_data='power_menu')]]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     await update.message.reply_text("Pick option",reply_markup=reply_markup)
@@ -29,8 +31,10 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await send_status_info(query)
     elif query.data == 'screenshot':
         await send_screenshot(query)
-    
-
+    elif query.data == 'power_menu':
+        await power_menu(query)
+    elif query.data.startswith('power_'):
+        await handle_power_command(query, query.data)
 
 async def send_system_info(query):
     system_info = SystemInfoServices.get_system_info()
@@ -153,3 +157,66 @@ async def send_screenshot(query):
         await query.message.reply_photo(photo = screenshot_data, caption=caption)
     except Exception as e:
             await query.edit_message_text(f"❌ Ошибка при создании скриншота: {str(e)}")
+
+
+async def power_menu(query):
+    keyboard = [
+        [InlineKeyboardButton("🔴 Выключить (30 сек)", callback_data='power_shutdown_30')],
+        [InlineKeyboardButton("🔴 Выключить (1 мин)", callback_data='power_shutdown_60')],
+        # [InlineKeyboardButton("🔄 Перезагрузить (1 мин)", callback_data='power_reboot_60')],
+        [InlineKeyboardButton("💤 Гибернация", callback_data='power_hibernate')],
+        [InlineKeyboardButton("⏹️ Отменить выключение", callback_data='power_cancel')],
+        # [InlineKeyboardButton("📋 Информация", callback_data='power_info')],
+        # [InlineKeyboardButton("🔙 Назад", callback_data='back_to_main')]
+
+       
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await query.edit_message_text(
+        "🔌 <b>Управление питанием компьютера</b>\n\n"
+        "Выберите действие:",
+        reply_markup=reply_markup,
+        parse_mode='HTML'
+    )
+
+
+async def handle_power_command(query, command):
+    """Обработчик команд управления питанием"""
+    try:
+
+        result = None
+        if command == 'power_shutdown_30':
+            result = PowerManager.shutdown(30)
+        elif command == 'power_shutdown_60':
+            result = PowerManager.shutdown(60)
+        # elif command == 'power_reboot_60':
+        #     result = PowerManager.reboot(60)
+        elif command == 'power_hibernate':
+            result = PowerManager.hibernate()
+        elif command == 'power_cancel':
+            result = PowerManager.cancel_shutdown()
+        # elif command == 'power_info':
+        #     result = PowerManager.get_power_info()
+        # elif command == 'back_to_main':
+        #     await start_command(query, None)
+        #     return
+        
+        if command != 'power_info':
+            message = result['message'] if result['success'] else f"❌ {result['error']}"
+            await query.edit_message_text(message)
+        # else:
+        #     # Показываем информацию о системе
+        #     info = result
+        #     message = "📋 <b>Информация о системе</b>\n\n"
+        #     message += f"<b>Система:</b> {info['system']}\n"
+        #     message += f"<b>Платформа:</b> {info['platform']}\n"
+        #     message += f"<b>Поддерживаемые команды:</b> {', '.join(info['supported_commands'])}\n\n"
+        #     message += "<b>Примеры команд:</b>\n"
+        #     for cmd, example in info['example_commands'].items():
+        #         message += f"  {cmd}: <code>{example}</code>\n"
+            
+        #     await query.edit_message_text(message, parse_mode='HTML')
+            
+    except Exception as e:
+        await query.edit_message_text(f"❌ Ошибка: {str(e)}")
+
