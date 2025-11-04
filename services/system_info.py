@@ -40,9 +40,39 @@ class SystemInfoServices:
                 'memory':{
                     'total': f"{memory.total/(1024**3):.2f} GB",
                     'used': f"{memory.used/(1024**3):.2f} GB",
+                    'available':f"{memory.available/(1024**3):.2f} GB",
+                    'usage': f"{memory.percent}%"
 
+                },
+                'swap': {
+                    'total':f"{swap.total/(1024**3):.2f} GB",
+                    'used': f"{swap.used/(1024**3):.2f} GB",
+                    'usage': f"{swap.percent}%"
+                },
+                'disk':{
+                    'total':f"{disk.total/(1024**3):.2f} GB",
+                    'used': f"{disk.used/(1024**3):.2f} GB",
+                    'free': f"{disk.free/(1024//3):.2f} GB",
+                    'usage': f"{disk.percent}%"
                 }
-
-
-
+                
             }
+
+            return info
+        except Exception as e:
+            return {'error': f"error get system info: {str(e)}"}
+    @staticmethod
+    def get_run_processess(limit=10):
+        try:
+            processes = []
+            for proc in psutil.process_iter(['pid', 'name', 'username']):
+                try:
+                    processes.append(proc.info)
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    pass
+
+            
+            processes.sort(key=lambda x: x['cpu_percent'] or 0, reverse=True)
+            return processes[:limit]
+        except Exception as e:
+            return f"Erorr get process {str(e)}"
