@@ -181,7 +181,6 @@ async def power_menu(query):
 
 
 async def handle_power_command(query, command):
-    """Обработчик команд управления питанием"""
     try:
 
         result = None
