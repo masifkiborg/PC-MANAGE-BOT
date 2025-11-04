@@ -2,3 +2,4 @@ pcm/
 services/__pycache__
 bot/__pycache__
 .env
+bot_log.txt
