@@ -52,6 +52,7 @@ python main.py
 Automatic Startup (Windows):
 
 start_bot.bat
+start_bot_hidden.vbs for a quiet start
 
 , Auto-upload settings
 Method 1: Through the startup folder
