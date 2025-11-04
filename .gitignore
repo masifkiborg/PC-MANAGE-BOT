@@ -1,3 +1,4 @@
 pcm/
 services/__pycache__
 bot/__pycache__
+.env
