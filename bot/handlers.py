@@ -2,12 +2,14 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from services.system_info import SystemInfoServices
 from services.network_info import NetworkInfoService
+from services.screenshot import Screenshot
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [[InlineKeyboardButton("Системная информация",callback_data='system_info')],
                 [InlineKeyboardButton("Сетевая информация",callback_data='network_info')],
                 [InlineKeyboardButton("Процессы",callback_data='processes')],
-                [InlineKeyboardButton("Статус",callback_data='status')]]
+                [InlineKeyboardButton("Статус",callback_data='status')],
+                [InlineKeyboardButton("Скриншот экрана",callback_data='screenshot')]]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     await update.message.reply_text("Pick option",reply_markup=reply_markup)
@@ -25,6 +27,9 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await send_processes_info(query)
     elif query.data == 'status':
         await send_status_info(query)
+    elif query.data == 'screenshot':
+        await send_screenshot(query)
+    
 
 
 async def send_system_info(query):
@@ -133,3 +138,18 @@ async def send_status_info(query):
     message += f"<b>Время работы:</b> {system_info['system']['uptime']}"
     
     await query.edit_message_text(message, parse_mode='HTML')
+
+
+async def send_screenshot(query):
+    try:
+        await query.edit_message_text("📸 Делаю скриншот...")
+        screenshot_data = Screenshot.take_screenshot()
+
+        if screenshot_data is None:
+            await query.edit_messgae_text("Не удалось")
+            return
+        system_info = SystemInfoServices.get_system_info()
+        caption = f"📸 Скриншот системы\n🖥️ {system_info['system']['hostname']}\n⏰ {system_info['system']['uptime']}"
+        await query.message.reply_photo(photo = screenshot_data, caption=caption)
+    except Exception as e:
+            await query.edit_message_text(f"❌ Ошибка при создании скриншота: {str(e)}")
