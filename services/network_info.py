@@ -23,11 +23,11 @@ class NetworkInfoService:
             }
 
             interfaces = {}
-            for interface_name, interface_adressess in psutil.net_if_addrs.items():
+            for interface_name, interface_adressess in psutil.net_if_addrs().items():
                 interfaces[interface_name] = []
                 for address in interface_adressess:
                     if address.family == socket.AF_INET:
-                        interfaces[interface_name].append({'address':address.adress,'netmask':address.netmask})
+                        interfaces[interface_name].append({'address':address.address,'netmask':address.netmask})
 
             info = {
                 'local_ip': local_ip,

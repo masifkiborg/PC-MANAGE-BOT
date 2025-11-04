@@ -21,7 +21,7 @@ class SystemInfoServices:
 
 
             boot_time = datetime.fromtimestamp(psutil.boot_time())
-            uptime = datetime.now() = boot_time
+            uptime = datetime.now() - boot_time
 
             info = {
                 'system':{
@@ -65,7 +65,7 @@ class SystemInfoServices:
     def get_run_processess(limit=10):
         try:
             processes = []
-            for proc in psutil.process_iter(['pid', 'name', 'username']):
+            for proc in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_percent']):
                 try:
                     processes.append(proc.info)
                 except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
